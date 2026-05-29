@@ -48,9 +48,7 @@ OWNER_TYPE_KEYWORDS = {
 
 CACHE_TTL_HOURS = 24
 
-# WHOIS rate limiting — many RDAP servers throttle at 10-20 req/min
 WHOIS_BATCH_SIZE = 5
 WHOIS_DELAY_SECONDS = 2.0
 
-# Claude model to use
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
