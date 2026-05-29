@@ -3,7 +3,7 @@ import asyncio
 import aiosqlite
 import json
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from config import SHODAN_API_KEY, SHODAN_QUERIES, DATABASE_PATH, CACHE_TTL_HOURS
 from services.ownership_service import enrich_ownership
 
@@ -65,7 +65,7 @@ async def _is_cache_fresh(city: str) -> bool:
                 return False
             try:
                 last = datetime.fromisoformat(row[0])
-                return datetime.utcnow() - last < timedelta(hours=CACHE_TTL_HOURS)
+                return datetime.now(timezone.utc) - last < timedelta(hours=CACHE_TTL_HOURS)
             except (ValueError, TypeError):
                 return False
 
@@ -106,7 +106,7 @@ async def _save_devices(city: str, devices: list):
                 d.get("first_seen"), d.get("last_seen"),
                 d.get("banner_snippet"),
                 json.dumps(d.get("raw", {})),
-                datetime.utcnow().isoformat()
+                datetime.now(timezone.utc).isoformat()
             ))
 
         await db.execute("""
@@ -117,7 +117,7 @@ async def _save_devices(city: str, devices: list):
             city_data.get("lat", 0),
             city_data.get("lon", 0),
             city_data.get("zoom", 12),
-            datetime.utcnow().isoformat()
+            datetime.now(timezone.utc).isoformat()
         ))
         await db.commit()
 

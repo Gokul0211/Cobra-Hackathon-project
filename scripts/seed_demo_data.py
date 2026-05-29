@@ -11,7 +11,7 @@ import aiosqlite
 import json
 import hashlib
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 from config import DATABASE_PATH
 from database import init_db
 
@@ -90,13 +90,13 @@ async def seed():
                             "2024-03-01", "2025-05-10",
                             f"Server: {mfr}-WebServer/2.0",
                             json.dumps({"product": mfr, "org": org}),
-                            datetime.utcnow().isoformat()
+                            datetime.now(timezone.utc).isoformat()
                         ))
 
             await db.execute("""
                 INSERT OR REPLACE INTO cities (name, lat, lon, zoom_level, last_fetched)
                 VALUES (?, ?, ?, ?, ?)
-            """, (city, city_data["center"][0], city_data["center"][1], 12, datetime.utcnow().isoformat()))
+            """, (city, city_data["center"][0], city_data["center"][1], 12, datetime.now(timezone.utc).isoformat()))
 
         await db.commit()
 

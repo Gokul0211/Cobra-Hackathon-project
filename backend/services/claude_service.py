@@ -2,7 +2,7 @@ import anthropic
 import aiosqlite
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from config import ANTHROPIC_API_KEY, DATABASE_PATH, CLAUDE_MODEL
 
 
@@ -77,7 +77,7 @@ async def _save_brief(cluster_id: str, city: str, brief_text: str, risk_level: s
             INSERT OR REPLACE INTO risk_briefs
             (cluster_id, city, brief_text, risk_level, generated_at)
             VALUES (?, ?, ?, ?, ?)
-        """, (cluster_id, city, brief_text, risk_level, datetime.utcnow().isoformat()))
+        """, (cluster_id, city, brief_text, risk_level, datetime.now(timezone.utc).isoformat()))
         await db.commit()
 
 
