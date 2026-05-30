@@ -52,6 +52,15 @@ export function DetailPanel({ device }) {
           <span className="metadata-label">Device Type</span>
           <span className="metadata-value">{device.type}</span>
 
+          <span className="metadata-label">Owner</span>
+          <span className="metadata-value">{device.owner || 'Unknown'}</span>
+
+          <span className="metadata-label">Coordinates</span>
+          <span className="metadata-value mono">{`[${device.coordinates[0].toFixed(4)}, ${device.coordinates[1].toFixed(4)}]`}</span>
+
+          <span className="metadata-label">Risk Level</span>
+          <span className="metadata-value" style={{ color: riskColor, fontWeight: 'bold' }}>{device.threatLevel}</span>
+
           <span className="metadata-label">IP Address</span>
           <span className="metadata-value">{device.ip}</span>
 
@@ -60,9 +69,6 @@ export function DetailPanel({ device }) {
 
           <span className="metadata-label">Uptime Metric</span>
           <span className="metadata-value">{device.uptime || '99.9%'}</span>
-
-          <span className="metadata-label">Risk Severity</span>
-          <span className="metadata-value" style={{ color: riskColor, fontWeight: 'bold' }}>{device.threatLevel}</span>
 
           <span className="metadata-label">Status Flag</span>
           <span className="metadata-value" style={{ color: riskColor }}>{device.status}</span>
@@ -80,3 +86,4 @@ export function DetailPanel({ device }) {
 }
 
 export default DetailPanel;
+

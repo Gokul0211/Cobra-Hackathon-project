@@ -40,6 +40,7 @@ export const MOCK_ASSETS = [
     city: 'Mumbai',
     uptime: '99.99%',
     protocol: 'IPSEC Tunnel',
+    owner: 'Mumbai Municipal Corporation',
     details: 'Primary municipal server hub. Encrypted diagnostic routing active.'
   },
   {
@@ -53,6 +54,7 @@ export const MOCK_ASSETS = [
     city: 'Mumbai',
     uptime: '92.40%',
     protocol: 'TLS v1.3',
+    owner: 'Reliance Capital Group',
     details: 'Corporate server core. Experiencing anomalous bandwidth utilization.'
   },
   {
@@ -66,6 +68,7 @@ export const MOCK_ASSETS = [
     city: 'Mumbai',
     uptime: '99.85%',
     protocol: 'WPA3 Enterprise',
+    owner: 'Bharti Airtel Ltd.',
     details: 'Main telecom exchange. Signals within nominal threshold limits.'
   },
   {
@@ -79,6 +82,7 @@ export const MOCK_ASSETS = [
     city: 'Mumbai',
     uptime: '97.50%',
     protocol: 'HTTP Live Feed',
+    owner: 'ABP News Network',
     details: 'News update: Local reports show heavy congestion along promenade.'
   },
 
@@ -94,6 +98,7 @@ export const MOCK_ASSETS = [
     city: 'Delhi',
     uptime: '100.00%',
     protocol: 'Secure MPLS',
+    owner: 'National Informatics Centre',
     details: 'Government central office system gateway. Access control nominal.'
   },
   {
@@ -107,6 +112,7 @@ export const MOCK_ASSETS = [
     city: 'Delhi',
     uptime: '99.90%',
     protocol: 'SSL Gateway',
+    owner: 'DLF CyberCity Holdings',
     details: 'Corporate operations center. Periodic database calibration in progress.'
   },
   {
@@ -120,6 +126,7 @@ export const MOCK_ASSETS = [
     city: 'Delhi',
     uptime: '89.12%',
     protocol: 'IPsec',
+    owner: 'Bharat Sanchar Nigam Ltd.',
     details: 'Critical fiber gateway node. High rate of dropped packets.'
   },
   {
@@ -133,6 +140,7 @@ export const MOCK_ASSETS = [
     city: 'Delhi',
     uptime: '99.95%',
     protocol: 'RTMP Feed',
+    owner: 'NDTV India',
     details: 'News update: Peaceful public gathering observed near central lawns.'
   },
 
@@ -148,6 +156,7 @@ export const MOCK_ASSETS = [
     city: 'Bengaluru',
     uptime: '99.99%',
     protocol: 'IPSEC Crypt',
+    owner: 'Government of Karnataka',
     details: 'State assembly digital gateway. Cryptographic integrity verified.'
   },
   {
@@ -161,6 +170,7 @@ export const MOCK_ASSETS = [
     city: 'Bengaluru',
     uptime: '96.22%',
     protocol: 'WireGuard',
+    owner: 'Infosys Tech Park',
     details: 'Large enterprise development link. Intrusion warnings registered.'
   },
   {
@@ -174,6 +184,7 @@ export const MOCK_ASSETS = [
     city: 'Bengaluru',
     uptime: '99.92%',
     protocol: 'WPA3',
+    owner: 'Reliance Jio Infocomm',
     details: 'Suburban network controller node. Heavy data transmission cycles.'
   },
   {
@@ -187,6 +198,7 @@ export const MOCK_ASSETS = [
     city: 'Bengaluru',
     uptime: '99.10%',
     protocol: 'Live RTMP',
+    owner: 'Times of India',
     details: 'News update: Suburban transit operating at maximum passenger volume.'
   }
 ];
@@ -200,12 +212,12 @@ const getMappedType = (type) => {
 };
 
 // Generates the custom HTML Leaflet Icon depending on properties
-const createLeafletIcon = (type, level) => {
+const createLeafletIcon = (type, level, isSelected) => {
   const factoryType = getMappedType(type);
   const config = getMapMarkerConfig(factoryType, level);
   
   return L.divIcon({
-    className: config.className,
+    className: `${config.className} ${isSelected ? 'surveillance-marker-selected' : ''}`,
     html: config.html,
     iconSize: config.iconSize,
     iconAnchor: config.iconAnchor
@@ -216,7 +228,7 @@ const createLeafletIcon = (type, level) => {
  * SurveillanceMap Component
  * Integrates Leaflet, filters markers, and handles transitions between Mumbai, Delhi, and Bengaluru.
  */
-export function SurveillanceMap({ selectedCity, onMarkerClick }) {
+export function SurveillanceMap({ selectedCity, selectedDevice, onMarkerClick }) {
   const [showDevices, setShowDevices] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [showNews, setShowNews] = useState(true);
@@ -278,26 +290,29 @@ export function SurveillanceMap({ selectedCity, onMarkerClick }) {
             })}
 
             {/* Render markers */}
-            {filteredAssets.map((asset) => (
-              <Marker
-                key={asset.id}
-                position={asset.coordinates}
-                icon={createLeafletIcon(asset.type, asset.threatLevel)}
-                eventHandlers={{
-                  click: () => onMarkerClick(asset)
-                }}
-              >
-                <Popup>
-                  <div style={{ minWidth: '150px' }}>
-                    <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '2px' }}>{asset.name}</strong>
-                    <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>ID: {asset.id}</span>
-                    <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: getThreatColor(asset.threatLevel), marginTop: '4px', textTransform: 'uppercase' }}>
-                      {asset.type} • {asset.threatLevel}
-                    </span>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+            {filteredAssets.map((asset) => {
+              const isSelected = selectedDevice && asset.id === selectedDevice.id;
+              return (
+                <Marker
+                  key={asset.id}
+                  position={asset.coordinates}
+                  icon={createLeafletIcon(asset.type, asset.threatLevel, isSelected)}
+                  eventHandlers={{
+                    click: () => onMarkerClick(asset)
+                  }}
+                >
+                  <Popup>
+                    <div style={{ minWidth: '150px' }}>
+                      <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '2px' }}>{asset.name}</strong>
+                      <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>ID: {asset.id}</span>
+                      <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: getThreatColor(asset.threatLevel), marginTop: '4px', textTransform: 'uppercase' }}>
+                        {asset.type} • {asset.threatLevel}
+                      </span>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
           
           {/* Layer Control HUD */}
