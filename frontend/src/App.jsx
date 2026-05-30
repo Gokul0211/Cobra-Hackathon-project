@@ -7,15 +7,17 @@ import DetailPanel from './components/DetailPanel';
 
 /**
  * App Component
- * Manages central state for selectedCity and selectedDevice, coordinating telemetry flow.
+ * Manages central states coordinating telemetry and news flows.
  */
 function App() {
   const [selectedCity, setSelectedCity] = useState('Mumbai');
   const [selectedDevice, setSelectedDevice] = useState(null);
+  const [selectedNews, setSelectedNews] = useState(null);
 
   const handleCityChange = (city) => {
     setSelectedCity(city);
     setSelectedDevice(null); // Clear selected device when switching cities
+    setSelectedNews(null); // Clear selected news when switching cities
   };
 
   return (
@@ -27,13 +29,19 @@ function App() {
         
         <main className="main-grid" id="dashboard-main-view">
           {/* Left Panel: Risk Brief */}
-          <RiskBrief />
+          <RiskBrief 
+            selectedCity={selectedCity}
+            selectedNews={selectedNews}
+            onNewsClick={setSelectedNews}
+          />
           
           {/* Center Panel: Surveillance Analytics Map */}
           <SurveillanceMap 
             selectedCity={selectedCity} 
             selectedDevice={selectedDevice}
             onMarkerClick={setSelectedDevice}
+            selectedNews={selectedNews}
+            onNewsClick={setSelectedNews}
           />
           
           {/* Right Panel: Device Intelligence */}

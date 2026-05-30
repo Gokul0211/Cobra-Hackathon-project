@@ -12,23 +12,31 @@ const cityCoordinates = {
   Bengaluru: [12.9716, 77.5946]
 };
 
+// Custom zoom levels to optimize visual framing
+const cityZooms = {
+  Mumbai: 12,
+  Delhi: 12,
+  Bengaluru: 11 // Slightly zoomed out to prevent side panel collision
+};
+
 // Map layer controller for smooth flyTo transitions
-function MapViewController({ center }) {
+function MapViewController({ center, zoom }) {
   const map = useMap();
   useEffect(() => {
-    if (center) {
-      map.flyTo(center, 12, {
+    if (center && zoom) {
+      map.flyTo(center, zoom, {
         animate: true,
         duration: 1.2
       });
     }
-  }, [center, map]);
+  }, [center, zoom, map]);
   return null;
 }
 
-// Complete mock dataset for devices and news markers across all three cities
+
+// Mock dataset for device markers across all three cities
 export const MOCK_ASSETS = [
-  // Mumbai Assets
+  // Mumbai Devices
   {
     id: 'MUM-GOV-01',
     name: 'Municipal HQ Gateway',
@@ -71,22 +79,8 @@ export const MOCK_ASSETS = [
     owner: 'Bharti Airtel Ltd.',
     details: 'Main telecom exchange. Signals within nominal threshold limits.'
   },
-  {
-    id: 'MUM-NEWS-04',
-    name: 'Marine Drive Public Alert',
-    type: 'NEWS',
-    threatLevel: 'MEDIUM',
-    coordinates: [18.9430, 72.8230],
-    status: 'ACTIVE',
-    ip: '10.55.20.1',
-    city: 'Mumbai',
-    uptime: '97.50%',
-    protocol: 'HTTP Live Feed',
-    owner: 'ABP News Network',
-    details: 'News update: Local reports show heavy congestion along promenade.'
-  },
 
-  // Delhi Assets
+  // Delhi Devices
   {
     id: 'DEL-GOV-01',
     name: 'Central Secretariat Node',
@@ -129,22 +123,8 @@ export const MOCK_ASSETS = [
     owner: 'Bharat Sanchar Nigam Ltd.',
     details: 'Critical fiber gateway node. High rate of dropped packets.'
   },
-  {
-    id: 'DEL-NEWS-04',
-    name: 'India Gate Assembly Report',
-    type: 'NEWS',
-    threatLevel: 'INFO',
-    coordinates: [28.6120, 77.2290],
-    status: 'ACTIVE',
-    ip: '10.99.12.8',
-    city: 'Delhi',
-    uptime: '99.95%',
-    protocol: 'RTMP Feed',
-    owner: 'NDTV India',
-    details: 'News update: Peaceful public gathering observed near central lawns.'
-  },
 
-  // Bengaluru Assets
+  // Bengaluru Devices
   {
     id: 'BLR-GOV-01',
     name: 'Vidhana Soudha Control Gate',
@@ -164,7 +144,7 @@ export const MOCK_ASSETS = [
     name: 'Whitefield IT Park Hub',
     type: 'CORPORATE',
     threatLevel: 'HIGH',
-    coordinates: [12.9560, 77.7010],
+    coordinates: [12.9600, 77.6150],
     status: 'UNSTABLE',
     ip: '172.22.88.19',
     city: 'Bengaluru',
@@ -178,7 +158,7 @@ export const MOCK_ASSETS = [
     name: 'Indiranagar Core Switch',
     type: 'TELECOM',
     threatLevel: 'MEDIUM',
-    coordinates: [12.9780, 77.6410],
+    coordinates: [12.9780, 77.6250],
     status: 'ACTIVE',
     ip: '192.168.4.5',
     city: 'Bengaluru',
@@ -186,20 +166,69 @@ export const MOCK_ASSETS = [
     protocol: 'WPA3',
     owner: 'Reliance Jio Infocomm',
     details: 'Suburban network controller node. Heavy data transmission cycles.'
+  }
+];
+
+// Rich news intelligence mock dataset across all three cities
+export const MOCK_NEWS = [
+  // Mumbai News
+  {
+    id: 'MUM-NEWS-01',
+    title: 'Promenade Security Reinforcement',
+    category: 'Public Safety',
+    timestamp: '2026-05-30T09:12:00Z',
+    summary: 'Local authorities deploy additional smart patrol cameras along Marine Drive to monitor high-density crowds and streamline pedestrian lanes.',
+    coordinates: [18.9430, 72.8230],
+    city: 'Mumbai'
   },
   {
-    id: 'BLR-NEWS-04',
-    name: 'MG Road Metro Event News',
-    type: 'NEWS',
-    threatLevel: 'LOW',
-    coordinates: [12.9740, 77.6080],
-    status: 'ACTIVE',
-    ip: '10.220.10.9',
-    city: 'Bengaluru',
-    uptime: '99.10%',
-    protocol: 'Live RTMP',
-    owner: 'Times of India',
-    details: 'News update: Suburban transit operating at maximum passenger volume.'
+    id: 'MUM-NEWS-02',
+    title: 'Suburban Line Delay Broadcast',
+    category: 'Transit',
+    timestamp: '2026-05-30T08:15:00Z',
+    summary: 'Signal failures registered near Dadar station cause major commuter backlog. Operators predict repairs will take approximately two hours.',
+    coordinates: [19.0178, 72.8478],
+    city: 'Mumbai'
+  },
+  
+  // Delhi News
+  {
+    id: 'DEL-NEWS-01',
+    title: 'Central Zone Assembly Notice',
+    category: 'Government Advisory',
+    timestamp: '2026-05-30T09:00:00Z',
+    summary: 'Public advisory issued regarding localized transit restrictions around India Gate lawns due to scheduled state assembly events.',
+    coordinates: [28.6120, 77.2290],
+    city: 'Delhi'
+  },
+  {
+    id: 'DEL-NEWS-02',
+    title: 'Airport Highway Traffic Reroute',
+    category: 'Traffic',
+    timestamp: '2026-05-30T07:45:00Z',
+    summary: 'VIP movement and minor structural repairs along the main airport tollway trigger multi-kilometer traffic queues. Alternate routes suggested.',
+    coordinates: [28.5562, 77.1000],
+    city: 'Delhi'
+  },
+
+  // Bengaluru News
+  {
+    id: 'BLR-NEWS-01',
+    title: 'Whitefield Smart Transit Launch',
+    category: 'Infrastructure',
+    timestamp: '2026-05-30T09:30:00Z',
+    summary: 'City council inaugurates dynamic signal tracking pilot in IT corridors to automatically adjust green-light cycles during rush hours.',
+    coordinates: [12.9480, 77.6020],
+    city: 'Bengaluru'
+  },
+  {
+    id: 'BLR-NEWS-02',
+    title: 'Subdivision Grid Power Maintenance',
+    category: 'Utility',
+    timestamp: '2026-05-30T08:00:00Z',
+    summary: 'Grid operators announce temporary substation maintenance schedules for Indiranagar, leading to scheduled two-hour backup transitions.',
+    coordinates: [12.9820, 77.6110],
+    city: 'Bengaluru'
   }
 ];
 
@@ -207,39 +236,114 @@ export const MOCK_ASSETS = [
 const getMappedType = (type) => {
   if (type === 'GOVERNMENT') return 'SHIELD';
   if (type === 'CORPORATE') return 'DATABASE';
-  if (type === 'TELECOM') return 'SATELLITE';
-  return 'CAMERA'; // Default news or fallback type
+  return 'SATELLITE'; // TELECOM or fallback type
 };
 
-// Generates the custom HTML Leaflet Icon depending on properties
-const createLeafletIcon = (type, level, isSelected) => {
-  const factoryType = getMappedType(type);
-  const config = getMapMarkerConfig(factoryType, level);
-  
-  return L.divIcon({
-    className: `${config.className} ${isSelected ? 'surveillance-marker-selected' : ''}`,
-    html: config.html,
-    iconSize: config.iconSize,
-    iconAnchor: config.iconAnchor
-  });
+// Cache to hold pre-created stable Leaflet L.divIcon instances for devices
+const deviceIconCache = {};
+
+const getDeviceIcon = (type, level, isSelected) => {
+  const cacheKey = `${type}-${level}-${isSelected ? 'selected' : 'normal'}`;
+  if (!deviceIconCache[cacheKey]) {
+    const factoryType = getMappedType(type);
+    const config = getMapMarkerConfig(factoryType, level);
+    deviceIconCache[cacheKey] = L.divIcon({
+      className: `${config.className} ${isSelected ? 'surveillance-marker-selected' : ''}`,
+      html: config.html,
+      iconSize: config.iconSize,
+      iconAnchor: config.iconAnchor
+    });
+  }
+  return deviceIconCache[cacheKey];
 };
+
+// Pre-created stable Leaflet L.divIcon references for news markers (prevents unstable recreation and flickering)
+const normalNewsIcon = L.divIcon({
+  className: 'news-marker',
+  html: `
+    <div class="news-marker-inner" style="
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0f141f;
+      border: 2px solid var(--color-info);
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    ">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <path d="M16 8h2"></path>
+        <path d="M16 12h2"></path>
+        <path d="M16 16h2"></path>
+        <path d="M6 8h6v8H6z"></path>
+      </svg>
+    </div>
+  `,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14]
+});
+
+const selectedNewsIcon = L.divIcon({
+  className: 'news-marker news-marker-selected',
+  html: `
+    <div class="news-marker-inner" style="
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0f141f;
+      border: 2px solid var(--color-info);
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    ">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <path d="M16 8h2"></path>
+        <path d="M16 12h2"></path>
+        <path d="M16 16h2"></path>
+        <path d="M6 8h6v8H6z"></path>
+      </svg>
+    </div>
+  `,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14]
+});
+
+const getNewsIcon = (isSelected) => {
+  return isSelected ? selectedNewsIcon : normalNewsIcon;
+};
+
 
 /**
  * SurveillanceMap Component
  * Integrates Leaflet, filters markers, and handles transitions between Mumbai, Delhi, and Bengaluru.
  */
-export function SurveillanceMap({ selectedCity, selectedDevice, onMarkerClick }) {
+export function SurveillanceMap({ 
+  selectedCity, 
+  selectedDevice, 
+  onMarkerClick,
+  selectedNews,
+  onNewsClick
+}) {
   const [showDevices, setShowDevices] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [showNews, setShowNews] = useState(true);
 
   const activeCenter = cityCoordinates[selectedCity] || cityCoordinates.Mumbai;
+  const activeZoom = cityZooms[selectedCity] || 12;
 
-  // Filter assets based on layer checkbox status and city context
-  const filteredAssets = MOCK_ASSETS.filter((asset) => {
-    if (asset.city !== selectedCity) return false;
-    if (asset.type === 'NEWS') return showNews;
-    return showDevices; // GOV, CORP, TEL fall under Devices
+
+  // Filter devices based on city context and toggle status
+  const filteredDevices = MOCK_ASSETS.filter((asset) => {
+    return asset.city === selectedCity && showDevices;
+  });
+
+  // Filter news based on city context and toggle status
+  const filteredNews = MOCK_NEWS.filter((news) => {
+    return news.city === selectedCity && showNews;
   });
 
   return (
@@ -259,7 +363,7 @@ export function SurveillanceMap({ selectedCity, selectedDevice, onMarkerClick })
         <div className="map-container" id="leaflet-map-target">
           <MapContainer 
             center={activeCenter} 
-            zoom={12} 
+            zoom={activeZoom} 
             zoomControl={false}
             scrollWheelZoom={true}
           >
@@ -269,15 +373,15 @@ export function SurveillanceMap({ selectedCity, selectedDevice, onMarkerClick })
             />
             
             {/* View controller manages dynamic panning / flyTo */}
-            <MapViewController center={activeCenter} />
+            <MapViewController center={activeCenter} zoom={activeZoom} />
 
             {/* Render risk range circles if heatmap is enabled */}
-            {showHeatmap && filteredAssets.map((asset) => {
-              const color = getThreatColor(asset.threatLevel);
+            {showHeatmap && filteredDevices.map((device) => {
+              const color = getThreatColor(device.threatLevel);
               return (
                 <Circle
-                  key={`heat-${asset.id}`}
-                  center={asset.coordinates}
+                  key={`heat-${device.id}`}
+                  center={device.coordinates}
                   radius={700}
                   pathOptions={{
                     color: color,
@@ -289,30 +393,59 @@ export function SurveillanceMap({ selectedCity, selectedDevice, onMarkerClick })
               );
             })}
 
-            {/* Render markers */}
-            {filteredAssets.map((asset) => {
-              const isSelected = selectedDevice && asset.id === selectedDevice.id;
+            {/* Render device markers */}
+            {filteredDevices.map((device) => {
+              const isSelected = selectedDevice && device.id === selectedDevice.id;
               return (
                 <Marker
-                  key={asset.id}
-                  position={asset.coordinates}
-                  icon={createLeafletIcon(asset.type, asset.threatLevel, isSelected)}
+                  key={device.id}
+                  position={device.coordinates}
+                  icon={getDeviceIcon(device.type, device.threatLevel, isSelected)}
                   eventHandlers={{
-                    click: () => onMarkerClick(asset)
+                    click: (e) => {
+                      onMarkerClick(device);
+                    }
                   }}
                 >
                   <Popup>
                     <div style={{ minWidth: '150px' }}>
-                      <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '2px' }}>{asset.name}</strong>
-                      <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>ID: {asset.id}</span>
-                      <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: getThreatColor(asset.threatLevel), marginTop: '4px', textTransform: 'uppercase' }}>
-                        {asset.type} • {asset.threatLevel}
+                      <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '2px' }}>{device.name}</strong>
+                      <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>ID: {device.id}</span>
+                      <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: getThreatColor(device.threatLevel), marginTop: '4px', textTransform: 'uppercase' }}>
+                        {device.type} • {device.threatLevel}
                       </span>
                     </div>
                   </Popup>
                 </Marker>
               );
             })}
+
+            {/* Render news markers */}
+            {filteredNews.map((news) => {
+              const isSelected = selectedNews && news.id === selectedNews.id;
+              return (
+                <Marker
+                  key={news.id}
+                  position={news.coordinates}
+                  icon={getNewsIcon(isSelected)}
+                  eventHandlers={{
+                    click: (e) => {
+                      onNewsClick(news);
+                    }
+                  }}
+                >
+                  <Popup>
+                    <div style={{ minWidth: '150px' }}>
+                      <strong style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '2px' }}>{news.title}</strong>
+                      <span className="mono" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-info)', textTransform: 'uppercase' }}>
+                        NEWS • {news.category}
+                      </span>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+
           </MapContainer>
           
           {/* Layer Control HUD */}

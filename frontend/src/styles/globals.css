@@ -424,6 +424,39 @@ button {
   }
 }
 
+/* Distinct Blue News Marker Styles */
+.news-marker {
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.news-marker-selected > .news-marker-inner {
+  outline: 2px solid var(--text-primary) !important;
+  outline-offset: 3px;
+  animation: pulse-news-marker 1.8s infinite ease-in-out;
+  transform: scale(1.1);
+}
+
+@keyframes pulse-news-marker {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+  }
+}
+
+
+
 
 
 

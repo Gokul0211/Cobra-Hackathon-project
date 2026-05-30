@@ -1,10 +1,14 @@
 import React from 'react';
+import { MOCK_NEWS } from './SurveillanceMap';
 
 /**
  * RiskBrief Component
  * Lists outstanding risk briefs and news intelligence updates.
  */
-export function RiskBrief() {
+export function RiskBrief({ selectedCity, selectedNews, onNewsClick }) {
+  // Filter news for the active city
+  const cityNews = MOCK_NEWS.filter((news) => news.city === selectedCity);
+
   return (
     <section className="panel" id="risk-brief-panel" style={{ height: '100%' }}>
       <div className="panel-header">
@@ -16,44 +20,77 @@ export function RiskBrief() {
           </svg>
           Risk Brief
         </h2>
-        <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--color-critical)' }}>3 UPDATES</span>
+        <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--color-info)' }}>
+          {cityNews.length} UPDATES
+        </span>
       </div>
 
       <div className="panel-content risk-brief">
-        {/* Risk 1 - Risk Brief */}
-        <div className="risk-card" id="risk-brief-1029">
-          <div className="risk-card-header">
-            <span className="risk-badge critical">Critical</span>
-            <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>09:12:00</span>
+        {/* Selected News Intelligence Display */}
+        {selectedNews ? (
+          <div 
+            className="risk-card" 
+            style={{ 
+              borderColor: 'var(--color-info)', 
+              backgroundColor: 'rgba(59, 130, 246, 0.08)',
+              marginBottom: '16px'
+            }}
+          >
+            <div className="risk-card-header">
+              <span className="risk-badge" style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)', color: 'var(--color-info)' }}>
+                Active Briefing
+              </span>
+              <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                {new Date(selectedNews.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>
+              {selectedNews.title}
+            </h3>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', gap: '8px', margin: '4px 0' }}>
+              <span className="mono">Category: {selectedNews.category}</span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.4' }}>
+              {selectedNews.summary}
+            </p>
           </div>
-          <h3 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Offline Sensor Event</h3>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Multiple monitoring endpoints registered signal disruptions. Automated diagnostic scripts are compiling logs.
-          </p>
-        </div>
+        ) : (
+          <div style={{ padding: '8px 0 16px 0', borderBottom: '1px solid var(--border-color)', marginBottom: '16px', color: 'var(--text-muted)', fontSize: '0.78rem', textAlign: 'center' }}>
+            Select a blue news marker on the map to display dynamic intelligence briefs here.
+          </div>
+        )}
 
-        {/* Risk 2 - News Intelligence */}
-        <div className="risk-card" id="news-brief-1028">
-          <div className="risk-card-header">
-            <span className="risk-badge high">News</span>
-            <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>08:45:00</span>
-          </div>
-          <h3 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Traffic Congestion News</h3>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Regional news feeds report heavy vehicle build-up at main corridor junctions. Dynamic routing suggests alternative arterial flow.
-          </p>
-        </div>
-
-        {/* Risk 3 - News Intelligence */}
-        <div className="risk-card" id="news-brief-1027">
-          <div className="risk-card-header">
-            <span className="risk-badge medium">News</span>
-            <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>07:30:00</span>
-          </div>
-          <h3 style={{ fontSize: '0.85rem', fontWeight: 600 }}>Routine Sensor Calibration</h3>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Municipal updates confirm schedule for routine lens cleaning and calibration across the northern district.
-          </p>
+        {/* List of all news items for the active city */}
+        <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>
+          Regional Feed ({selectedCity})
+        </h3>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {cityNews.map((news) => {
+            const isSelected = selectedNews && news.id === selectedNews.id;
+            return (
+              <div 
+                key={news.id} 
+                className="risk-card" 
+                onClick={() => onNewsClick(news)}
+                style={{ 
+                  cursor: 'pointer',
+                  borderColor: isSelected ? 'var(--color-info)' : 'var(--border-color)',
+                  backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.04)' : ''
+                }}
+              >
+                <div className="risk-card-header">
+                  <span className="risk-badge low">{news.category}</span>
+                  <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    {new Date(news.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 500, color: isSelected ? 'var(--color-info)' : 'var(--text-primary)' }}>
+                  {news.title}
+                </h4>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -61,4 +98,3 @@ export function RiskBrief() {
 }
 
 export default RiskBrief;
-
