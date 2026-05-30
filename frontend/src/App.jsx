@@ -7,7 +7,7 @@ import DetailPanel from './components/DetailPanel';
 
 /**
  * App Component
- * Integrates the top navigation, metrics bar, and primary tactical dashboard grid.
+ * Integrates the top navigation, metrics bar, and primary dashboard grid.
  */
 function App() {
   return (
@@ -18,18 +18,19 @@ function App() {
         <StatsBar />
         
         <main className="main-grid" id="dashboard-main-view">
-          {/* Left Panel: Risk & Warnings */}
+          {/* Left Panel: Risk Brief */}
           <RiskBrief />
           
-          {/* Center Panel: Map Tracking Visualizer */}
+          {/* Center Panel: Surveillance Analytics Map */}
           <SurveillanceMap />
           
-          {/* Right Panel: Selected Entity Telemetry */}
+          {/* Right Panel: Device Intelligence */}
           <DetailPanel />
         </main>
       </div>
     </div>
   );
 }
+
 
 export default App;

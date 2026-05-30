@@ -338,3 +338,28 @@ button {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* City Selector styling */
+.city-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.city-select {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: var(--border-radius);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-speed);
+}
+
+.city-select:focus {
+  border-color: var(--border-focus);
+}
+

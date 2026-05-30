@@ -2,11 +2,11 @@ import React from 'react';
 
 /**
  * StatsBar Component
- * Renders telemetry highlights at the top of the interface.
+ * Renders metrics highlights at the top of the interface.
  */
 export function StatsBar() {
   return (
-    <section className="stats-bar" id="telemetry-stats-bar">
+    <section className="stats-bar" id="surveillance-stats-bar">
       <div className="stat-item" id="stat-active-sensors">
         <span className="stat-label">Active Sensors</span>
         <span className="stat-value">1,422</span>
@@ -16,7 +16,7 @@ export function StatsBar() {
         <span className="stat-value" style={{ color: 'var(--color-critical)' }}>14</span>
       </div>
       <div className="stat-item" id="stat-risk-index">
-        <span className="stat-label">Avg Threat Index</span>
+        <span className="stat-label">Avg Risk Index</span>
         <span className="stat-value">42%</span>
       </div>
       <div className="stat-item" id="stat-network-load">
@@ -28,3 +28,4 @@ export function StatsBar() {
 }
 
 export default StatsBar;
+
