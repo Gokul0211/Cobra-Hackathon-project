@@ -18,6 +18,8 @@ export default function App() {
   const [city, setCity] = useState('Mumbai');
   const [selected, setSelected] = useState(null);  // { type: 'device'|'news', data: {} }
   const [showLinks, setShowLinks] = useState(false);
+  const [satelliteMode, setSatelliteMode] = useState(false);
+  const [orbitalAlerts, setOrbitalAlerts] = useState([]);
   const [layers, setLayers] = useState({
     devices: true,
     heatmap: false,
@@ -63,10 +65,12 @@ export default function App() {
         layers={layers}
         onToggleLayer={toggleLayer}
         cities={Object.keys(CITIES)}
+        satelliteMode={satelliteMode}
+        onToggleSatellite={() => setSatelliteMode(prev => !prev)}
       />
       
       <div className="dashboard-content">
-        <StatsBar city={city} />
+        <StatsBar city={city} orbitalAlerts={orbitalAlerts} />
         
         <main className="main-grid" id="dashboard-main-view">
           <RiskBrief 
@@ -81,8 +85,12 @@ export default function App() {
               layers={layers}
               selected={selected}
               showLinks={showLinks}
+              satelliteMode={satelliteMode}
               onSelectDevice={(device) => { setSelected({ type: 'device', data: device }); setShowLinks(false); }}
               onSelectNews={(article) => setSelected({ type: 'news', data: article })}
+              onSelectFeed={(feed) => setSelected({ type: 'public_feed', data: feed })}
+              onOrbitalUpdate={setOrbitalAlerts}
+              onSelectSatellite={(sat) => { setSelected({ type: 'satellite', data: sat }); setShowLinks(false); }}
             />
           </ErrorBoundary>
           

@@ -3,9 +3,9 @@ import { ownerColor } from './colorMap';
 
 export function createDeviceIcon(ownerType, deviceType) {
   const color = ownerColor(ownerType);
-  // Slightly larger icon for cameras vs network devices
   const size = (deviceType === 'IP Camera' || deviceType === 'DVR/NVR') ? 10 : 8;
   const r = size / 2 - 1;
+
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
       <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="${color}" stroke="${color}" stroke-opacity="0.3" stroke-width="2"/>

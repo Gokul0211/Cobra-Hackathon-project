@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Navbar({ selectedCity, onCityChange, layers, onToggleLayer, cities }) {
+export default function Navbar({ selectedCity, onCityChange, layers, onToggleLayer, cities, satelliteMode, onToggleSatellite }) {
   return (
     <nav style={{
       height: 44,
@@ -55,8 +55,35 @@ export default function Navbar({ selectedCity, onCityChange, layers, onToggleLay
         ))}
       </div>
 
-      {/* Layer toggles */}
+      {/* Layer toggles + SAT VIEW */}
       <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
+        {/* SAT VIEW button */}
+        <button
+          id="satellite-view-toggle"
+          onClick={onToggleSatellite}
+          title="Toggle Esri satellite imagery basemap"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '3px 10px',
+            background: satelliteMode ? 'rgba(255,153,51,0.15)' : 'transparent',
+            border: satelliteMode ? '1px solid #FF9933' : '1px solid rgba(255,153,51,0.35)',
+            color: satelliteMode ? '#FF9933' : 'rgba(255,153,51,0.6)',
+            borderRadius: 3,
+            cursor: 'pointer',
+            fontSize: 11,
+            fontFamily: 'IBM Plex Mono, monospace',
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            transition: 'all 0.2s',
+            boxShadow: satelliteMode ? '0 0 8px rgba(255,153,51,0.3)' : 'none',
+          }}
+        >
+          🛰 SAT VIEW
+        </button>
+
+        <div style={{ width: 1, height: 16, background: 'var(--border)', opacity: 0.5 }} />
         {Object.entries(layers).map(([key, active]) => (
           <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
             <input

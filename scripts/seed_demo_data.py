@@ -60,6 +60,14 @@ ORGS = {
     "unknown": ["Unknown", "APNIC Research", "Private Network"],
 }
 
+def is_in_mumbai_water(lat, lon):
+    # Rough approximation of Mumbai's coastlines to prevent ocean-cameras
+    if lon < 72.822 and lat < 18.98: return True # Back Bay / Arabian Sea (South)
+    if lon < 72.830 and lat >= 18.98 and lat < 19.05: return True # Mahim Bay
+    if lon < 72.810 and lat >= 19.05: return True # Arabian Sea (Juhu/Versova)
+    if lon > 72.855 and lat < 18.96: return True # Eastern Harbor
+    if lon > 72.870 and lat >= 18.96 and lat < 19.03: return True # Sewri mudflats
+    return False
 
 async def seed():
     await init_db()
@@ -68,9 +76,13 @@ async def seed():
             for cluster in city_data["clusters"]:
                 for owner_type, count in cluster["owner_mix"].items():
                     for _ in range(count * 10):
-                        # Use a tighter radius so they look like actual clusters again
-                        lat = cluster["center"][0] + random.uniform(-0.02, 0.02)
-                        lon = cluster["center"][1] + random.uniform(-0.02, 0.02)
+                        # RCA Fix: Use Gaussian distribution instead of Uniform Square, and reject points in the ocean
+                        for _ in range(15):
+                            lat = cluster["center"][0] + random.gauss(0, 0.012)
+                            lon = cluster["center"][1] + random.gauss(0, 0.012)
+                            if city == "Mumbai" and is_in_mumbai_water(lat, lon):
+                                continue
+                            break
                         ip = f"{random.randint(1,223)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
                         did = hashlib.md5(f"{ip}:{city}".encode()).hexdigest()
                         mfr = random.choice(MANUFACTURERS)

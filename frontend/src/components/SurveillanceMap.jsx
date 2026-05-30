@@ -5,6 +5,8 @@ import 'leaflet.heat';
 import 'leaflet/dist/leaflet.css';
 import { createDeviceIcon, createNewsIcon } from '../utils/iconFactory';
 import { fetchDevices, fetchNews, fetchHeatmap } from '../utils/api';
+import { getFeedsForCity } from '../utils/publicFeeds';
+import OrbitalTracker from './OrbitalTracker';
 
 const CITY_CENTERS = {
   Mumbai:    [19.0760, 72.8777],
@@ -12,10 +14,12 @@ const CITY_CENTERS = {
   Bangalore: [12.9716, 77.5946],
 };
 
-const TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
-const TILE_ATTR = '&copy; OpenStreetMap &copy; CARTO';
+const TILE_URL      = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+const TILE_ATTR     = '&copy; OpenStreetMap &copy; CARTO';
+const SAT_TILE_URL  = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const SAT_TILE_ATTR = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
 
-function MapLayers({ city, layers, selected, showLinks, onSelectDevice, onSelectNews, setLoading }) {
+function MapLayers({ city, layers, selected, showLinks, onSelectDevice, onSelectNews, onSelectFeed, setLoading }) {
   const map = useMap();
   const deviceLayerRef = useRef(null);
   const heatLayerRef = useRef(null);
@@ -23,6 +27,7 @@ function MapLayers({ city, layers, selected, showLinks, onSelectDevice, onSelect
 
   const [devicesData, setDevicesData] = useState(null);
   const linkLayerRef = useRef(null);
+  const publicFeedLayerRef = useRef(null);
 
   // Re-center when city changes
   useEffect(() => {
@@ -128,6 +133,49 @@ function MapLayers({ city, layers, selected, showLinks, onSelectDevice, onSelect
     };
   }, [selected, showLinks, devicesData, city, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Render public gov feed markers (cyan)
+  useEffect(() => {
+    if (publicFeedLayerRef.current) {
+      map.removeLayer(publicFeedLayerRef.current);
+      publicFeedLayerRef.current = null;
+    }
+    const feeds = getFeedsForCity(city);
+    if (feeds.length === 0) return;
+
+    const layer = L.layerGroup();
+    feeds.forEach(feed => {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="
+          width: 14px; height: 14px;
+          background: #00e5ff;
+          border: 2px solid #fff;
+          border-radius: 50%;
+          box-shadow: 0 0 8px #00e5ff, 0 0 16px #00e5ff88;
+          animation: pulse-feed 1.5s infinite;
+        "></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+      });
+      const marker = L.marker([feed.lat, feed.lon], { icon, zIndexOffset: 500 });
+      marker.on('click', () => onSelectFeed(feed));
+      marker.bindTooltip(`📡 ${feed.label} · ${feed.authority}`, {
+        direction: 'top', offset: [0, -10],
+      });
+      marker.addTo(layer);
+    });
+
+    layer.addTo(map);
+    publicFeedLayerRef.current = layer;
+
+    return () => {
+      if (publicFeedLayerRef.current) {
+        map.removeLayer(publicFeedLayerRef.current);
+        publicFeedLayerRef.current = null;
+      }
+    };
+  }, [city, map]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fetch and render heatmap
   useEffect(() => {
     if (heatLayerRef.current) {
@@ -198,7 +246,7 @@ function MapLayers({ city, layers, selected, showLinks, onSelectDevice, onSelect
   return null;
 }
 
-export default function SurveillanceMap({ city, layers, selected, showLinks, onSelectDevice, onSelectNews }) {
+export default function SurveillanceMap({ city, layers, selected, showLinks, satelliteMode, onSelectDevice, onSelectNews, onSelectFeed, onOrbitalUpdate, onSelectSatellite }) {
   const [loading, setLoading] = useState(false);
 
   return (
@@ -229,11 +277,16 @@ export default function SurveillanceMap({ city, layers, selected, showLinks, onS
       <MapContainer
         center={CITY_CENTERS[city] || [20, 78]}
         zoom={12}
-        zoomControl={false}
+        zoomControl={true}
         scrollWheelZoom={true}
         style={{ width: '100%', height: '100%', background: '#0a0a0a' }}
       >
-        <TileLayer attribution={TILE_ATTR} url={TILE_URL} />
+        <TileLayer
+          key={satelliteMode ? 'sat' : 'dark'}
+          attribution={satelliteMode ? SAT_TILE_ATTR : TILE_ATTR}
+          url={satelliteMode ? SAT_TILE_URL : TILE_URL}
+          maxZoom={19}
+        />
         
         <MapLayers
           city={city}
@@ -242,7 +295,14 @@ export default function SurveillanceMap({ city, layers, selected, showLinks, onS
           showLinks={showLinks}
           onSelectDevice={onSelectDevice}
           onSelectNews={onSelectNews}
+          onSelectFeed={onSelectFeed}
           setLoading={setLoading}
+        />
+
+        <OrbitalTracker
+          city={city}
+          onOrbitalUpdate={onOrbitalUpdate}
+          onSelectSatellite={onSelectSatellite}
         />
       </MapContainer>
     </div>
