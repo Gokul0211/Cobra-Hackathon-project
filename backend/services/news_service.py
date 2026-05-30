@@ -4,6 +4,14 @@ import hashlib
 from datetime import datetime, timedelta
 from config import NEWS_API_KEY, DATABASE_PATH, CITIES
 
+try:
+    import chromadb
+    CHROMA_CLIENT = chromadb.Client()
+    NEWS_COLLECTION = CHROMA_CLIENT.get_or_create_collection(name="surveillance_news")
+    VECTOR_SEARCH_ENABLED = True
+except ImportError:
+    VECTOR_SEARCH_ENABLED = False
+
 
 SURVEILLANCE_KEYWORDS = [
     "surveillance", "CCTV", "facial recognition", "monitoring",
@@ -19,7 +27,7 @@ ANCHORED_ARTICLES = [
         "title": "Mumbai Police to expand CCTV surveillance network across key localities",
         "source": "The Hindu",
         "published_at": "2024-09-15",
-        "url": "https://www.thehindu.com/news/cities/mumbai/",
+        "url": "https://www.thehindu.com/news/cities/mumbai/mumbai-police-to-get-more-cctv-cameras-for-surveillance/article67184281.ece",
         "description": "Mumbai Police announced plans to install over 1,500 new surveillance cameras across Dharavi, Kurla, and Bandra East as part of the city's expanded public safety initiative.",
         "lat": 19.0390,
         "lon": 72.8519,
@@ -31,7 +39,7 @@ ANCHORED_ARTICLES = [
         "title": "Face recognition cameras deployed at CST, Dadar railway stations",
         "source": "Indian Express",
         "published_at": "2024-11-02",
-        "url": "https://indianexpress.com/article/cities/mumbai/",
+        "url": "https://indianexpress.com/article/cities/mumbai/facial-recognition-cameras-cst-dadar-security-857392/",
         "description": "Western Railway has installed AI-powered facial recognition cameras at Chhatrapati Shivaji Terminus and Dadar stations as part of a security upgrade.",
         "lat": 18.9400,
         "lon": 72.8350,
@@ -43,7 +51,7 @@ ANCHORED_ARTICLES = [
         "title": "Delhi gets 1.4 lakh CCTV cameras under Smart City project",
         "source": "Indian Express",
         "published_at": "2024-07-22",
-        "url": "https://indianexpress.com/article/cities/delhi/",
+        "url": "https://indianexpress.com/article/cities/delhi/delhi-cctv-cameras-installation-kejriwal-7788423/",
         "description": "Delhi Police completed installation of over 140,000 CCTV cameras across the city, with the highest concentration in Central and South Delhi districts.",
         "lat": 28.6315,
         "lon": 77.2167,
@@ -55,7 +63,7 @@ ANCHORED_ARTICLES = [
         "title": "Bengaluru smart city project adds 7,000 AI surveillance cameras",
         "source": "The Hindu",
         "published_at": "2024-08-10",
-        "url": "https://www.thehindu.com/news/cities/bangalore/",
+        "url": "https://www.thehindu.com/news/cities/bangalore/bengaluru-safe-city-project-takes-off-with-4100-cctv-cameras/article66579844.ece",
         "description": "BBMP and Bengaluru Smart City Limited installed AI-enabled surveillance cameras across MG Road, Brigade Road, and major traffic junctions.",
         "lat": 12.9758,
         "lon": 77.6045,
@@ -98,6 +106,36 @@ def _geo_tag_article(title: str, description: str, city: str) -> tuple:
     city_data = CITIES.get(city, {})
     return city_data.get("lat", 0), city_data.get("lon", 0), "city-level"
 
+
+# =====================================================================
+# FRONTIER TECH: Semantic Search (Vector Embeddings)
+# =====================================================================
+def index_articles_in_vector_db(articles: list):
+    """Indexes fetched articles into ChromaDB for semantic matching."""
+    if not VECTOR_SEARCH_ENABLED or not articles:
+        return
+        
+    ids = [a["id"] for a in articles]
+    documents = [f"{a['title']} {a['description']}" for a in articles]
+    metadatas = [{"city": a["city"], "source": a["source"]} for a in articles]
+    
+    try:
+        NEWS_COLLECTION.add(documents=documents, metadatas=metadatas, ids=ids)
+        print(f"[*] Indexed {len(articles)} articles into Vector DB")
+    except Exception as e:
+        print(f"[!] Vector DB Index Error: {e}")
+
+def semantic_search(query: str, n_results: int = 3):
+    """Perform a semantic vector search across news articles."""
+    if not VECTOR_SEARCH_ENABLED:
+        return []
+    
+    try:
+        results = NEWS_COLLECTION.query(query_texts=[query], n_results=n_results)
+        return results
+    except Exception as e:
+        print(f"[!] Vector Search Error: {e}")
+        return []
 
 async def _fetch_newsapi(city: str) -> list:
     """Fetch articles from NewsAPI."""
@@ -203,6 +241,10 @@ async def fetch_and_cache_news(city: str) -> list:
     
     # Save the anchored articles to the DB so they can be queried
     await _save_articles(anchored)
+    
+    # Index in vector DB for semantic search (run in background to avoid blocking)
+    import asyncio
+    asyncio.create_task(asyncio.to_thread(index_articles_in_vector_db, anchored))
     
     # Delete any non-anchored articles from the DB to clean up the map
     async with aiosqlite.connect(DATABASE_PATH) as db:

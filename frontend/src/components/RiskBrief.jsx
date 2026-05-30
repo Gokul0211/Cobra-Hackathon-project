@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchNews, streamBrief } from '../utils/api';
 
-export default function RiskBrief({ city, selected, onSelectNews }) {
+export default function RiskBrief({ city, selected, onSelectNews, showNews }) {
   const [news, setNews] = useState([]);
   const [briefState, setBriefState] = useState({ text: '', riskLevel: 'PENDING', error: null });
   const [isStreaming, setIsStreaming] = useState(false);
@@ -134,11 +134,13 @@ export default function RiskBrief({ city, selected, onSelectNews }) {
         )}
 
         {/* List of all news items for the active city */}
-        <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>
-          Regional Feed ({city})
-        </h3>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {showNews && (
+          <>
+            <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>
+              Regional Feed ({city})
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {news.map((n) => {
             const isSelected = selected?.type === 'news' && n.id === selected.data.id;
             return (
@@ -166,7 +168,9 @@ export default function RiskBrief({ city, selected, onSelectNews }) {
               </div>
             );
           })}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

@@ -98,8 +98,10 @@ export default function StatsBar({ city, orbitalAlerts = [] }) {
           </span>
         </div>
         <div className="stat-item">
-          <span className="stat-label">Avg Risk Index</span>
-          <span className="stat-value">{stats?.surveillance_score?.devices_per_sq_km || '--'} <span style={{fontSize: 10, color: 'var(--text-muted)'}}>dev/km²</span></span>
+          <span className="stat-label">Privacy Risk Score</span>
+          <span className="stat-value" style={{ color: (stats?.surveillance_score?.devices_per_sq_km || 0) > 50 ? '#ff3366' : 'var(--color-medium)' }}>
+            {Math.min(Math.round(stats?.surveillance_score?.devices_per_sq_km || 0), 100)}<span style={{fontSize: 12, color: 'var(--text-muted)'}}>/100</span>
+          </span>
         </div>
         <div className="stat-item">
           <span className="stat-label" style={{ color: '#00e5ff' }}>Orbital Assets</span>

@@ -4,6 +4,7 @@ import DetailPanel from './components/DetailPanel';
 import RiskBrief from './components/RiskBrief';
 import Navbar from './components/Navbar';
 import StatsBar from './components/StatsBar';
+import LiveAlerts from './components/LiveAlerts';
 import ErrorBoundary from './components/ErrorBoundary';
 import './styles/globals.css';
 import './App.css'; // preserve friend's styling
@@ -76,6 +77,7 @@ export default function App() {
           <RiskBrief 
             city={city}
             selected={selected}
+            showNews={layers.news}
             onSelectNews={(article) => setSelected({ type: 'news', data: article })}
           />
           
@@ -103,6 +105,7 @@ export default function App() {
           />
         </main>
       </div>
+      <LiveAlerts />
     </div>
   );
 }

@@ -19,18 +19,17 @@ export function createDeviceIcon(ownerType, deviceType) {
 }
 
 export function createNewsIcon(isVerified) {
-  // Verified pins are slightly bigger with a brighter fill
-  const size = isVerified ? 14 : 12;
-  const fill = isVerified ? '#2e86c1' : '#2471a3';
-  const opacity = isVerified ? '1' : '0.85';
+  const size = isVerified ? 20 : 16;
+  const fill = isVerified ? '#00e5ff' : '#00a8cc'; // Bright neon cyan
+  const opacity = isVerified ? '1' : '0.9';
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
-      <rect x="1" y="1" width="${size-2}" height="${size-2}" fill="${fill}" opacity="${opacity}" rx="1"/>
-      ${isVerified ? `<line x1="3" y1="${size/2}" x2="${size-3}" y2="${size/2}" stroke="#fff" stroke-width="1.5"/>` : ''}
+      <rect x="0" y="0" width="${size}" height="${size}" fill="${fill}" opacity="${opacity}" rx="3" stroke="#fff" stroke-width="1.5"/>
+      <path d="M4 ${size/2} L${size-4} ${size/2} M4 ${size/2-3} L${size-4} ${size/2-3} M4 ${size/2+3} L${size-8} ${size/2+3}" stroke="#111" stroke-width="1.5"/>
     </svg>`;
   return L.divIcon({
-    html: svg,
-    className: '',
+    html: `<div style="filter: drop-shadow(0 0 6px ${fill});">${svg}</div>`,
+    className: 'news-marker-icon',
     iconSize: [size, size],
     iconAnchor: [size/2, size/2],
   });

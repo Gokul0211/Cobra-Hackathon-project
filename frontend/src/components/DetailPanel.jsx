@@ -331,29 +331,6 @@ export default function DetailPanel({ selected, city, showLinks, onToggleLinks, 
                 : `This device has open ports (${Array.isArray(device.ports) ? device.ports.join(', ') : '—'}) with no confirmed authentication. The camera interface may be publicly accessible.`
               }
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-              <a
-                href={buildCertInReport(device, city)}
-                onClick={() => setReportSent(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '5px 12px',
-                  background: reportSent ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-primary)',
-                  border: `1px solid ${reportSent ? '#10b981' : 'var(--border-color)'}`,
-                  color: reportSent ? '#10b981' : 'var(--text-secondary)',
-                  borderRadius: 4,
-                  fontSize: '0.7rem',
-                  fontFamily: 'monospace',
-                  textDecoration: 'none',
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                }}
-              >
-                {reportSent ? '✓ Report Filed' : 'Report to CERT-In'}
-              </a>
-            </div>
           </div>
         )}
 
