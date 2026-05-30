@@ -1,9 +1,9 @@
-import anthropic
+from groq import Groq
 import aiosqlite
 import asyncio
 import json
 from datetime import datetime, timezone
-from config import ANTHROPIC_API_KEY, DATABASE_PATH, CLAUDE_MODEL
+from config import GROQ_API_KEY, DATABASE_PATH, GROQ_MODEL
 
 
 SYSTEM_PROMPT = """You are a neutral, factual surveillance infrastructure analyst. 
@@ -13,7 +13,7 @@ Your writing style is Reuters wire service — precise, factual, dense."""
 
 
 def _build_user_prompt(req: dict) -> str:
-    """Build the user prompt for Claude from cluster data."""
+    """Build the user prompt for Groq from cluster data."""
     owner_str = ", ".join(f"{k}: {v}" for k, v in req["owner_types"].items() if v > 0)
     news_str = "\n".join(f"- {h}" for h in req.get("nearby_news_headlines", [])) or "No recent news found."
     return f"""Given the following surveillance infrastructure data, write a factual 3-paragraph risk brief.
@@ -82,7 +82,7 @@ async def _save_brief(cluster_id: str, city: str, brief_text: str, risk_level: s
 
 
 async def generate_brief(req: dict) -> dict:
-    """Generate a risk brief. Returns from cache if available, otherwise calls Claude."""
+    """Generate a risk brief. Returns from cache if available, otherwise calls Groq."""
     cluster_id = req["cluster_id"]
 
     cached = await _get_cached_brief(cluster_id)
@@ -94,7 +94,7 @@ async def generate_brief(req: dict) -> dict:
             "from_cache": True,
         }
 
-    if not ANTHROPIC_API_KEY:
+    if not GROQ_API_KEY:
         return {
             "cluster_id": cluster_id,
             "brief_text": "Analysis unavailable — API key not configured.",
@@ -102,24 +102,27 @@ async def generate_brief(req: dict) -> dict:
             "from_cache": False,
         }
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = Groq(api_key=GROQ_API_KEY)
     loop = asyncio.get_event_loop()
 
     def _call():
-        message = client.messages.create(
-            model=CLAUDE_MODEL, max_tokens=1000,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": _build_user_prompt(req)}]
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            max_tokens=1000,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": _build_user_prompt(req)},
+            ],
         )
-        return message.content[0].text
+        return response.choices[0].message.content
 
     try:
         brief_text = await loop.run_in_executor(None, _call)
     except Exception as e:
-        print(f"[claude error] {e}")
+        print(f"[groq error] {e}")
         return {
             "cluster_id": cluster_id,
-            "brief_text": f"Analysis temporarily unavailable.",
+            "brief_text": "Analysis temporarily unavailable.",
             "risk_level": "MEDIUM",
             "from_cache": False,
         }
@@ -145,27 +148,33 @@ async def generate_brief_stream(req: dict):
         yield f"data: {json.dumps({'type': 'done', 'risk_level': cached['risk_level']})}\n\n"
         return
 
-    if not ANTHROPIC_API_KEY:
+    if not GROQ_API_KEY:
         yield f"data: {json.dumps({'type': 'text', 'content': 'Analysis unavailable — API key not configured.'})}\n\n"
         yield f"data: {json.dumps({'type': 'done', 'risk_level': 'MEDIUM'})}\n\n"
         return
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    client = Groq(api_key=GROQ_API_KEY)
     full_text = ""
 
     try:
-        with client.messages.stream(
-            model=CLAUDE_MODEL, max_tokens=1000,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": _build_user_prompt(req)}]
-        ) as stream:
-            for text in stream.text_stream:
-                full_text += text
-                yield f"data: {json.dumps({'type': 'chunk', 'content': text})}\n\n"
+        stream = client.chat.completions.create(
+            model=GROQ_MODEL,
+            max_tokens=1000,
+            stream=True,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": _build_user_prompt(req)},
+            ],
+        )
+        for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                full_text += delta
+                yield f"data: {json.dumps({'type': 'chunk', 'content': delta})}\n\n"
 
         risk_level = _extract_risk_level(full_text)
         await _save_brief(cluster_id, req["city"], full_text, risk_level)
         yield f"data: {json.dumps({'type': 'done', 'risk_level': risk_level})}\n\n"
     except Exception as e:
-        print(f"[claude stream error] {e}")
+        print(f"[groq stream error] {e}")
         yield f"data: {json.dumps({'type': 'error', 'message': str(e)[:100]})}\n\n"

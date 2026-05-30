@@ -8,6 +8,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHODAN_API_KEY = os.getenv("SHODAN_API_KEY", "")
 NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 DATABASE_PATH = os.getenv("DATABASE_PATH", os.path.join(BASE_DIR, "data", "surveillancewatch.db"))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
@@ -52,3 +53,4 @@ WHOIS_BATCH_SIZE = 5
 WHOIS_DELAY_SECONDS = 2.0
 
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
+GROQ_MODEL = "openai/gpt-oss-120b"
