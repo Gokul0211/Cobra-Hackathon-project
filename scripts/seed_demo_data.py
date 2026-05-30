@@ -67,9 +67,10 @@ async def seed():
         for city, city_data in SEED_DATA.items():
             for cluster in city_data["clusters"]:
                 for owner_type, count in cluster["owner_mix"].items():
-                    for _ in range(count):
-                        lat = cluster["center"][0] + random.uniform(-0.008, 0.008)
-                        lon = cluster["center"][1] + random.uniform(-0.008, 0.008)
+                    for _ in range(count * 10):
+                        # Use a tighter radius so they look like actual clusters again
+                        lat = cluster["center"][0] + random.uniform(-0.02, 0.02)
+                        lon = cluster["center"][1] + random.uniform(-0.02, 0.02)
                         ip = f"{random.randint(1,223)}.{random.randint(0,255)}.{random.randint(0,255)}.{random.randint(1,254)}"
                         did = hashlib.md5(f"{ip}:{city}".encode()).hexdigest()
                         mfr = random.choice(MANUFACTURERS)

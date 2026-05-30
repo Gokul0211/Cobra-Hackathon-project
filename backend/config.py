@@ -51,5 +51,4 @@ CACHE_TTL_HOURS = 24
 WHOIS_BATCH_SIZE = 5
 WHOIS_DELAY_SECONDS = 2.0
 
-CLAUDE_MODEL = "claude-sonnet-4-20250514"
-GROQ_MODEL = "openai/gpt-oss-120b"
+GROQ_MODEL = "llama-3.3-70b-versatile"

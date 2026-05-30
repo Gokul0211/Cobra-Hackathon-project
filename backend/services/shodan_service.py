@@ -225,6 +225,14 @@ def devices_to_geojson(devices: list) -> dict:
                 ports = json.loads(ports)
             except Exception:
                 ports = []
+        # Parse raw_data for extra fields (stored as JSON string in DB)
+        raw = d.get("raw_data") or d.get("raw") or {}
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except Exception:
+                raw = {}
+
         features.append({
             "type": "Feature",
             "geometry": {
@@ -234,15 +242,22 @@ def devices_to_geojson(devices: list) -> dict:
             "properties": {
                 "id": d["id"],
                 "ip": d["ip"],
+                # Include coordinates directly in properties so frontend can access them
+                "lat": d["lat"],
+                "lon": d["lon"],
                 "device_type": d.get("device_type"),
                 "manufacturer": d.get("manufacturer"),
                 "ports": ports,
                 "owner_org": d.get("owner_org"),
+                "org": d.get("owner_org") or raw.get("org"),
                 "owner_type": d.get("owner_type", "unknown"),
                 "ownership_confidence": d.get("ownership_confidence", "low"),
                 "first_seen": d.get("first_seen"),
                 "last_seen": d.get("last_seen"),
+                "last_update": d.get("last_seen") or d.get("fetched_at", ""),
                 "banner_snippet": d.get("banner_snippet"),
+                "os": raw.get("os"),
+                "isp": raw.get("isp"),
             }
         })
     return {"type": "FeatureCollection", "features": features}

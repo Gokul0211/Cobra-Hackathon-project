@@ -1,34 +1,96 @@
 import React from 'react';
 
-/**
- * Navbar Component
- * Renders system branding and city selector.
- */
-export function Navbar({ selectedCity, onCityChange }) {
+export default function Navbar({ selectedCity, onCityChange, layers, onToggleLayer, cities }) {
   return (
-    <header className="navbar" id="main-navbar">
-      <div className="navbar-brand">
-        <div className="navbar-logo">SW</div>
-        <h1 className="navbar-title">SurveillanceWatch</h1>
+    <nav style={{
+      height: 44,
+      background: 'var(--bg-surface)',
+      borderBottom: '1px solid var(--border)',
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0 16px',
+      gap: 24,
+      flexShrink: 0,
+    }}>
+      {/* Brand */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: '#1e8449',
+          display: 'inline-block',
+          boxShadow: '0 0 4px #1e844966',
+        }} />
+        <span style={{
+          fontFamily: 'IBM Plex Mono, monospace',
+          fontSize: 13,
+          fontWeight: 500,
+          color: 'var(--text-primary)',
+          letterSpacing: '0.05em',
+        }}>
+          SURVEILLANCEWATCH
+        </span>
       </div>
-      
-      <div className="city-selector-container">
-        <label htmlFor="city-select" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginRight: '4px' }}>Region:</label>
-        <select 
-          id="city-select" 
-          className="city-select" 
-          value={selectedCity}
-          onChange={(e) => onCityChange(e.target.value)}
-        >
-          <option value="Mumbai">Mumbai</option>
-          <option value="Delhi">Delhi</option>
-          <option value="Bengaluru">Bengaluru</option>
-        </select>
+
+      {/* City selector */}
+      <div style={{ display: 'flex', gap: 2, marginLeft: 8 }}>
+        {(cities || ['Mumbai', 'Delhi']).map(c => (
+          <button
+            key={c}
+            id={`city-btn-${c.toLowerCase()}`}
+            onClick={() => onCityChange(c)}
+            style={{
+              background: selectedCity === c ? 'var(--bg-elevated)' : 'transparent',
+              border: selectedCity === c ? '1px solid var(--border)' : '1px solid transparent',
+              color: selectedCity === c ? 'var(--text-primary)' : 'var(--text-muted)',
+              padding: '3px 10px',
+              cursor: 'pointer',
+              fontSize: 12,
+              fontFamily: 'DM Sans, sans-serif',
+              borderRadius: 2,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {c}
+          </button>
+        ))}
       </div>
-    </header>
+
+      {/* Layer toggles */}
+      <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
+        {Object.entries(layers).map(([key, active]) => (
+          <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              id={`layer-toggle-${key}`}
+              checked={active}
+              onChange={() => onToggleLayer(key)}
+              style={{ accentColor: 'var(--text-secondary)', cursor: 'pointer' }}
+            />
+            <span style={{
+              fontSize: 11,
+              fontFamily: 'IBM Plex Mono, monospace',
+              color: active ? 'var(--text-secondary)' : 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+            }}>
+              {key}
+            </span>
+            {/* Heatmap proportionality question — only shown when active */}
+            {key === 'heatmap' && active && (
+              <span style={{
+                fontSize: 10,
+                color: 'var(--text-muted)',
+                fontFamily: 'DM Sans',
+                fontStyle: 'italic',
+                maxWidth: 200,
+                marginLeft: 4,
+              }}>
+                Is surveillance distributed proportionally?
+              </span>
+            )}
+          </label>
+        ))}
+      </div>
+    </nav>
   );
 }
-
-export default Navbar;
-
-

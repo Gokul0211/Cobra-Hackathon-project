@@ -460,3 +460,20 @@ button {
 
 
 
+
+
+/* Entity Link Graph Animation */
+.animated-laser-line {
+  animation: pulse-laser 1s infinite alternate, flow-dash 10s linear infinite;
+}
+
+@keyframes pulse-laser {
+  0% { filter: drop-shadow(0 0 1px #e74c3c) drop-shadow(0 0 3px #e74c3c); opacity: 0.5; stroke-width: 1.5; }
+  100% { filter: drop-shadow(0 0 4px #e74c3c) drop-shadow(0 0 8px #e74c3c); opacity: 1; stroke-width: 2.5; }
+}
+
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -200;
+  }
+}

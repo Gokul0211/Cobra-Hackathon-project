@@ -25,35 +25,31 @@ def classify_owner_by_keywords(org: str, asn_description: str) -> tuple[str, str
 
 async def classify_owner_with_claude(org: str, country: str) -> str:
     """
-    Use Claude to classify ambiguous orgs that keyword matching couldn't resolve.
+    Use Groq (llama-3.3-70b) to classify ambiguous orgs that keyword matching couldn't resolve.
     Returns one of: government, corporate, telecom, unknown.
     Only called when keyword matching returns 'unknown' with 'low' confidence.
     """
-    from config import ANTHROPIC_API_KEY, CLAUDE_MODEL
-    import anthropic
-    import asyncio
+    from config import GROQ_API_KEY, GROQ_MODEL
+    from groq import AsyncGroq
 
-    if not ANTHROPIC_API_KEY:
+    if not GROQ_API_KEY:
         return "unknown"
 
-    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-    prompt = f"""Classify this organization as one of: government, corporate, telecom, unknown.
-Organization name: "{org}"
-Country: "{country}"
-Respond with only one word: government, corporate, telecom, or unknown."""
+    client = AsyncGroq(api_key=GROQ_API_KEY)
+    prompt = (
+        f"Classify this organization as one of: government, corporate, telecom, unknown.\n"
+        f"Organization name: \"{org}\"\n"
+        f"Country: \"{country}\"\n"
+        f"Respond with only one word: government, corporate, telecom, or unknown."
+    )
 
     try:
-        loop = asyncio.get_event_loop()
-
-        def _call():
-            message = client.messages.create(
-                model=CLAUDE_MODEL,
-                max_tokens=10,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return message.content[0].text.strip().lower()
-
-        result = await loop.run_in_executor(None, _call)
+        res = await client.chat.completions.create(
+            model=GROQ_MODEL,
+            max_tokens=10,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        result = (res.choices[0].message.content or "").strip().lower()
         if result in ("government", "corporate", "telecom"):
             return result
         return "unknown"

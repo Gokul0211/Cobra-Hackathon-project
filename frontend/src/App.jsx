@@ -1,55 +1,100 @@
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import StatsBar from './components/StatsBar';
-import RiskBrief from './components/RiskBrief';
+import { useState, useEffect } from 'react';
 import SurveillanceMap from './components/SurveillanceMap';
 import DetailPanel from './components/DetailPanel';
+import RiskBrief from './components/RiskBrief';
+import Navbar from './components/Navbar';
+import StatsBar from './components/StatsBar';
+import ErrorBoundary from './components/ErrorBoundary';
+import './styles/globals.css';
+import './App.css'; // preserve friend's styling
 
-/**
- * App Component
- * Manages central states coordinating telemetry and news flows.
- */
-function App() {
-  const [selectedCity, setSelectedCity] = useState('Mumbai');
-  const [selectedDevice, setSelectedDevice] = useState(null);
-  const [selectedNews, setSelectedNews] = useState(null);
+const CITIES = {
+  Mumbai:    { lat: 19.0760, lon: 72.8777, zoom: 12 },
+  Delhi:     { lat: 28.6139, lon: 77.2090, zoom: 12 },
+  Bangalore: { lat: 12.9716, lon: 77.5946, zoom: 12 },
+};
 
-  const handleCityChange = (city) => {
-    setSelectedCity(city);
-    setSelectedDevice(null); // Clear selected device when switching cities
-    setSelectedNews(null); // Clear selected news when switching cities
-  };
+export default function App() {
+  const [city, setCity] = useState('Mumbai');
+  const [selected, setSelected] = useState(null);  // { type: 'device'|'news', data: {} }
+  const [showLinks, setShowLinks] = useState(false);
+  const [layers, setLayers] = useState({
+    devices: true,
+    heatmap: false,
+    news: true,
+  });
+
+  // Clear selected item when city changes — prevent stale panel data
+  useEffect(() => {
+    setSelected(null);
+    setShowLinks(false);
+  }, [city]);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      // Escape closes detail panel
+      if (e.key === 'Escape') {
+        setSelected(null);
+      }
+      // 1, 2, 3 switch cities (when not focused on an input)
+      if (e.target.tagName === 'INPUT') return;
+      const cityKeys = Object.keys(CITIES);
+      if (e.key === '1' && cityKeys[0]) setCity(cityKeys[0]);
+      if (e.key === '2' && cityKeys[1]) setCity(cityKeys[1]);
+      if (e.key === '3' && cityKeys[2]) setCity(cityKeys[2]);
+      // H toggles heatmap
+      if (e.key === 'h' || e.key === 'H') setLayers(prev => ({ ...prev, heatmap: !prev.heatmap }));
+      // N toggles news
+      if (e.key === 'n' || e.key === 'N') setLayers(prev => ({ ...prev, news: !prev.news }));
+      // D toggles devices
+      if (e.key === 'd' || e.key === 'D') setLayers(prev => ({ ...prev, devices: !prev.devices }));
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const toggleLayer = (layer) => setLayers(prev => ({ ...prev, [layer]: !prev[layer] }));
 
   return (
     <div className="dashboard-container" id="surveillance-watch-root">
-      <Navbar selectedCity={selectedCity} onCityChange={handleCityChange} />
+      <Navbar
+        selectedCity={city}
+        onCityChange={setCity}
+        layers={layers}
+        onToggleLayer={toggleLayer}
+        cities={Object.keys(CITIES)}
+      />
       
       <div className="dashboard-content">
-        <StatsBar />
+        <StatsBar city={city} />
         
         <main className="main-grid" id="dashboard-main-view">
-          {/* Left Panel: Risk Brief */}
           <RiskBrief 
-            selectedCity={selectedCity}
-            selectedNews={selectedNews}
-            onNewsClick={setSelectedNews}
+            city={city}
+            selected={selected}
+            onSelectNews={(article) => setSelected({ type: 'news', data: article })}
           />
           
-          {/* Center Panel: Surveillance Analytics Map */}
-          <SurveillanceMap 
-            selectedCity={selectedCity} 
-            selectedDevice={selectedDevice}
-            onMarkerClick={setSelectedDevice}
-            selectedNews={selectedNews}
-            onNewsClick={setSelectedNews}
-          />
+          <ErrorBoundary>
+            <SurveillanceMap
+              city={city}
+              layers={layers}
+              selected={selected}
+              showLinks={showLinks}
+              onSelectDevice={(device) => { setSelected({ type: 'device', data: device }); setShowLinks(false); }}
+              onSelectNews={(article) => setSelected({ type: 'news', data: article })}
+            />
+          </ErrorBoundary>
           
-          {/* Right Panel: Device Intelligence */}
-          <DetailPanel device={selectedDevice} />
+          <DetailPanel
+            selected={selected}
+            city={city}
+            showLinks={showLinks}
+            onToggleLinks={() => setShowLinks(prev => !prev)}
+            onClose={() => { setSelected(null); setShowLinks(false); }}
+          />
         </main>
       </div>
     </div>
   );
 }
-
-export default App;
