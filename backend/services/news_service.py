@@ -198,42 +198,15 @@ async def _save_articles(articles: list):
 
 
 async def fetch_and_cache_news(city: str) -> list:
-    """Fetch news for a city. Returns cached if available."""
+    """Fetch news for a city. For the hackathon demo, we ONLY use anchored articles to prevent API noise."""
     anchored = [a for a in ANCHORED_ARTICLES if a["city"] == city]
-
+    
+    # Save the anchored articles to the DB so they can be queried
+    await _save_articles(anchored)
+    
+    # Delete any non-anchored articles from the DB to clean up the map
     async with aiosqlite.connect(DATABASE_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute(
-            "SELECT COUNT(*) as cnt FROM news_articles WHERE city = ? AND geo_confidence != 'manually_verified'",
-            (city,)
-        ) as cursor:
-            row = await cursor.fetchone()
-            has_cached = row[0] > 0 if row else False
+        await db.execute("DELETE FROM news_articles WHERE geo_confidence != 'manually_verified'")
+        await db.commit()
 
-    if has_cached:
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM news_articles WHERE city = ? ORDER BY published_at DESC", (city,)
-            ) as cursor:
-                rows = await cursor.fetchall()
-                cached = [dict(r) for r in rows]
-        cached_urls = {a.get("url") for a in cached}
-        for a in anchored:
-            if a["url"] not in cached_urls:
-                cached.append(a)
-        return cached
-
-    print(f"[news fetch] {city}")
-    api_articles = await _fetch_newsapi(city)
-    gdelt_articles = await _fetch_gdelt(city)
-
-    seen_urls = set()
-    all_articles = []
-    for a in anchored + api_articles + gdelt_articles:
-        if a["url"] not in seen_urls:
-            seen_urls.add(a["url"])
-            all_articles.append(a)
-
-    await _save_articles(all_articles)
-    return all_articles
+    return anchored
