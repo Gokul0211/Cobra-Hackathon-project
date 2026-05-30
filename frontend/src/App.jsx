@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import StatsBar from './components/StatsBar';
 import RiskBrief from './components/RiskBrief';
@@ -7,12 +7,20 @@ import DetailPanel from './components/DetailPanel';
 
 /**
  * App Component
- * Integrates the top navigation, metrics bar, and primary dashboard grid.
+ * Manages central state for selectedCity and selectedDevice, coordinating telemetry flow.
  */
 function App() {
+  const [selectedCity, setSelectedCity] = useState('Mumbai');
+  const [selectedDevice, setSelectedDevice] = useState(null);
+
+  const handleCityChange = (city) => {
+    setSelectedCity(city);
+    setSelectedDevice(null); // Clear selected device when switching cities
+  };
+
   return (
     <div className="dashboard-container" id="surveillance-watch-root">
-      <Navbar />
+      <Navbar selectedCity={selectedCity} onCityChange={handleCityChange} />
       
       <div className="dashboard-content">
         <StatsBar />
@@ -22,15 +30,18 @@ function App() {
           <RiskBrief />
           
           {/* Center Panel: Surveillance Analytics Map */}
-          <SurveillanceMap />
+          <SurveillanceMap 
+            selectedCity={selectedCity} 
+            selectedDevice={selectedDevice}
+            onMarkerClick={setSelectedDevice}
+          />
           
           {/* Right Panel: Device Intelligence */}
-          <DetailPanel />
+          <DetailPanel device={selectedDevice} />
         </main>
       </div>
     </div>
   );
 }
-
 
 export default App;
